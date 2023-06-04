@@ -6,7 +6,7 @@
 
 ## Tasks
 
-1. implement the grid search: the method: [black box](https://ee227c.github.io/code/lecture20.html) Finished
+1. implement the grid search: the method: [black box](https://ee227c.github.io/code/lecture20.html) (Finished)
 2. Benchmarks
 3. New Numerical Exp
 
