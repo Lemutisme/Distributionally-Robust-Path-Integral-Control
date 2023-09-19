@@ -1,0 +1,22 @@
+DR_method: RN
+Experiment: 2
+Visualization: False
+seed_value: 1
+num_simulation: 100
+Online: True
+observations: 1
+gamma: 1.0
+sigma: 0.5
+
+Statistics info:
+Success rate: 19.0%
+Mean of success_time: 25.89473684210527
+Variance of success_time: 123.97635964912284
+Standard Deviation of success_time: 11.134467191972988
+Percentiles of success_time:
+0.05    12.620
+0.25    18.700
+0.50    23.550
+0.75    33.650
+0.95    44.525
+Name: success_time, dtype: float64
