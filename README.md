@@ -119,16 +119,16 @@ python src/vis.py --Experiment "1" --Name "log/DRExp1" --Visualization
 
 <table>
 <tr>
-<td><img src="log/Submission/DRExp1/DRExp1.png" alt="DRExp1" width="400"/></td>
-<td><img src="log/Submission/RNExp1/RNExp1.png" alt="RNExp1" width="400"/></td>
+<td><img src="./log/Submission/DRExp1/DRExp1.png" alt="DRExp1" width="400"/></td>
+<td><img src="./log/Submission/RNExp1/RNExp1.png" alt="RNExp1" width="400"/></td>
 </tr>
 </table>
 
 
 <table>
 <tr>
-<td><img src="log/Submission/DRExp2/DRExp2.png" alt="DRExp2" width="400"/></td>
-<td><img src="log/Submission/RNExp2/RNExp2.png" alt="RNExp2" width="400"/></td>
+<td><img src="./log/Submission/DRExp2/DRExp2.png" alt="DRExp2" width="400"/></td>
+<td><img src="./log/Submission/RNExp2/RNExp2.png" alt="RNExp2" width="400"/></td>
 </tr>
 </table>
 
