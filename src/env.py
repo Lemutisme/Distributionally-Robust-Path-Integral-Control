@@ -130,7 +130,6 @@ class CircleObstacle(Obstacle):
 
 class PolygonObstacle(Obstacle):
     def __init__(self, obstacle_positions, boundary_x, boundary_y, obs_cost):
-        # Here, obstacle_positions should be a list of vertices for each polygon
         super().__init__(obstacle_positions, None, boundary_x, boundary_y, obs_cost)
 
     def compute_obstacle_cost(self, x_curr):

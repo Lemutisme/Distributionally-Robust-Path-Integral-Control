@@ -27,7 +27,6 @@ def dist_to_goal_function(x_curr, x_goal):
 def sample_noise(mu, T=10.0, dt=0.5, num_trajs=500, n=2) :
     return np.random.multivariate_normal(mu, np.identity(len(mu)) , [num_trajs, int(np.floor(T/dt))])
 
-
 def stat_info(df, dir_path, num_simulation, Experiment_info):
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
@@ -53,14 +52,11 @@ def stat_info(df, dir_path, num_simulation, Experiment_info):
     with open(file_path, 'w') as file:
         file.write(Experiment_info + info)
 
-
 def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_samples, dist_weight, sigma, mu_hat, obs_cost = 10, num_trajs=500, num_vis=500, goal_tolerance=0.1) :
     costs = np.zeros(num_trajs)
     time_steps = int(T//dt)
-    goal_reached = False
     
     x_vis = np.zeros( (num_vis, time_steps, 2) )*np.nan
-    n = len(x_init)
     
     for k in range(num_trajs) :
 
@@ -75,12 +71,10 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
             if k < num_vis :
                 x_vis[k, t, :] = x_curr[:2]    
                 
-
             dist_to_goal = dist_to_goal_function(x_curr[:2], x_goal)
             costs[k] += stage_cost(dist_to_goal, dist_weight)
             
             if dist_to_goal <= goal_tolerance :
-                goal_reached = True
                 break
             
             num_obs = len(obs_pos)
@@ -90,21 +84,12 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
                 costs[k] += environment.compute_total_obstacle_cost(x_curr)
                 if environment.check_hit_any_obstacle(x_curr):
                     break
-
-                
-                # Boundary panalty
+                # Boundary cost
                 costs[k] += environment.compute_total_boundary_penalty(x_curr)
                 if environment.check_hit_any_boundary(x_curr):
                     break
             
-            # Terminal cost
-            # costs[k] += term_cost(dist_to_goal, goal_reached) 
-            
-            # for t in range(time_steps) :
-            #     costs[k] += u_curr[t,:] @ Sigma @ u_curr[t,:]
     return costs, x_vis
-
-
 
 def opt_cost_func(lambda_, gamma, costs, num_trajs):
     lambda_prime = 1 / (1 - lambda_)
@@ -126,10 +111,8 @@ def update_useq_NM(costs, noise_samples, gamma, T, dt):
     num_trajs = len(noise_samples)
     lambda_r = 1  
 
-
     best_result = None
     best_value = float('inf')  
-    best_method = None
 
     methods = ['Powell', 'L-BFGS-B', 'TNC', 'COBYLA', 'SLSQP']
     bound_for_lambda = [(0, None)]  
@@ -141,14 +124,12 @@ def update_useq_NM(costs, noise_samples, gamma, T, dt):
             if result.fun < best_value:
                 best_result = result
                 best_value = result.fun
-                best_method = method
+
         except ValueError as e:
             print(f"Error using method {method} for gamma = {gamma}: {e}")
         
-    if best_result:  # If we found a result (regardless of success status)
+    if best_result: 
         lambda_r = best_result.x[0]
-        #print(lambda_r)
-        #print(f"For gamma = {gamma}, best method is {best_method} with value {best_value}.")
     else:
         print("Optimization failed for gamma =", gamma)
 
@@ -156,13 +137,12 @@ def update_useq_NM(costs, noise_samples, gamma, T, dt):
 
 def update_useq_GM(costs, noise_samples, gamma, T, dt):
     num_trajs = len(noise_samples)
-    lambda_r = 1  # Initialize lambda_r
+    lambda_r = 1 
 
     best_result = None
     best_value = float('inf')  
 
     bound_for_lambda = [(0, 100)]  
-    # First optimization using basinhopping
     try:
         result = basinhopping(opt_cost_func, x0=lambda_r, minimizer_kwargs={"method": "L-BFGS-B", "args": (gamma, costs, num_trajs), "bounds": bound_for_lambda})
         
@@ -172,7 +152,6 @@ def update_useq_GM(costs, noise_samples, gamma, T, dt):
     except ValueError as e:
         print(f"Error in basinhopping for gamma = {gamma}: {e}")
 
-    # Second optimization using differential_evolution
     try:
         result = differential_evolution(opt_cost_func, bounds=bound_for_lambda, args=(gamma, costs, num_trajs), x0=lambda_r)
         
@@ -182,13 +161,11 @@ def update_useq_GM(costs, noise_samples, gamma, T, dt):
     except ValueError as e:
         print(f"Error in differential_evolution for gamma = {gamma}: {e}")
 
-        
     if best_result:  
         lambda_r = best_result.x[0]
     else:
         print("Optimization failed for gamma =", gamma)
 
-    # Return the best lambda_r found
     return update_useq_risk_neutral(costs, noise_samples, T, dt, lambda_neut=lambda_r, n=2)
 
 def path_integral(dynamics, environment, mu, x_init, x_goal, dist_weight, obs_cost, obs_pos, obs_r, T, dt, num_trajs, num_vis, gammas, sigma, DR_method, mu_hat):

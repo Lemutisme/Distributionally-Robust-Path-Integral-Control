@@ -1,6 +1,6 @@
 # DR Control
 
-This is the repo of out paper: 
+This is the repo of out paper:
 
 ## Requirement
 
@@ -17,7 +17,7 @@ conda install numpy pandas matplotlib seaborn scipy tqdm
 To run the script, use the following command:
 
 ```
-python src/main.py.py [options]
+python src/main.py [options]
 ```
 
 #### Options:
@@ -70,9 +70,6 @@ python src/main.py.py [options]
 - `--dt`: Set the dt value. Default is 0.05.
 
   Example: `--dt 0.07`
-- `--theta`: Set the theta value. Default is 0.01.
-
-  Example: `--theta 0.02`
 
 #### Example
 
@@ -116,7 +113,6 @@ python src/vis.py --Experiment "1" --Name "log/DRExp1" --Visualization
 
 ### Double Integrator Model
 
-
 <table>
 <tr>
 <td><img src="./log/DRExp1/DRExp1.png" alt="DRExp1" width="400"/></td>
@@ -124,14 +120,12 @@ python src/vis.py --Experiment "1" --Name "log/DRExp1" --Visualization
 </tr>
 </table>
 
-
 <table>
 <tr>
 <td><img src="./log/DRExp2/DRExp2.png" alt="DRExp2" width="400"/></td>
 <td><img src="./log/RNExp2/RNExp2.png" alt="RNExp2" width="400"/></td>
 </tr>
 </table>
-
 
 ### Performance of different schemes
 

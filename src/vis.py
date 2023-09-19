@@ -1,65 +1,48 @@
 import os
 import json
-
 import argparse
-from datetime import datetime
-
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from datetime import datetime
 
 from env import Map, Obstacle, RectangularObstacle
 
 def final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG):
     sns.set_style("white")
-
     soft_green = "#9bf80c"
     dark_blue = "#02075d"
 
-    # Create the plot
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Plot initial and target states WITHOUT label
     ax.plot([x_init[0]], [x_init[1]], '8', markersize=20, markerfacecolor=sns.color_palette()[0], markeredgecolor='k', zorder=6)
     ax.plot([x_goal[0]], [x_goal[1]], '*', markersize=25, markerfacecolor=sns.color_palette()[1], markeredgecolor='k', zorder=6)
 
-    # Plot map and obstacles (assuming the necessary functions are available)
     environment.plot_map(ax)
-    # obstacle.plot_obstacles(ax)  # Uncomment if needed
 
-    # Set plot boundaries and labels
     ax.set_xlim(boundary_x)
     ax.set_ylim(boundary_y)
     ax.set_xlabel(r'$p_{x}$', fontsize=14, fontweight='bold')
     ax.set_ylabel(r'$p_{y}$', fontsize=14, fontweight='bold')
 
-    # Plot the trajectories with customized colors
     for i in success_index:
         ax.plot(x_hists[i,:,0], x_hists[i,:,1], color=soft_green, linewidth=0.8)
 
     for i in fail_index:
         ax.plot(x_hists[i,:,0], x_hists[i,:,1], color=dark_blue, linewidth=0.8)
 
-    # Add dummy plots for the legend
     ax.plot([], [], '8', markersize=10, markerfacecolor=sns.color_palette()[0], label='Initial State', markeredgecolor='k') # Reduced size for legend
     ax.plot([], [], '*', markersize=10, markerfacecolor=sns.color_palette()[1], label='Target State', markeredgecolor='k') # Reduced size for legend
     ax.plot([], [], color=soft_green, linewidth=0.8, label='Successful Trajectories')
     ax.plot([], [], color=dark_blue, linewidth=0.8, label='Failed Trajectories')
 
-    # Set titles and legend
-    #title_line1 = f'{DR_method} method in {num_simulation} simulations'
-    #title_line2 = f'Results: {len(success_index)/num_simulation*100:.2f}% success rate and {np.mean(success_time):.2f}s mean success time'
-    #ax.set_title(f"{title_line1}\n{title_line2}", fontsize=16, fontweight='bold')
     ax.set_aspect('equal')
-
-    # Set plot boundaries and labels with reduced font size
     ax.set_xlabel(r'$p_{x}$', fontsize=10)
     ax.set_ylabel(r'$p_{y}$', fontsize=10)
 
     # ax.legend(loc="lower left", prop={'size': 7})
 
-    # Display the plot
     if Visualization:
         plt.tight_layout()
         plt.show()
@@ -97,7 +80,6 @@ def extract_para(Experiment, Name, SAVE_LOG):
 
     if Experiment == "1":
 
-        
         x_goal = np.array([0,0])
         x_init = np.array([-3.5, 2.5, 0, 0])
         
@@ -114,7 +96,6 @@ def extract_para(Experiment, Name, SAVE_LOG):
         environment = Map([obstacle])
 
     elif Experiment == "2":
-
 
         x_goal = np.array([0,0])
         x_init = np.array([0, 5, 5.7])

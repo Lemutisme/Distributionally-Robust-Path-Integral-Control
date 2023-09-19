@@ -35,8 +35,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_vis", type=int, default=500, help="Set number of vis.")
     parser.add_argument("--T", type=float, default=2.0, help="Set T value.")
     parser.add_argument("--dt", type=float, default=0.05, help="Set dt value.")
-    parser.add_argument("--theta", type=float, default=0.01, help="Set theta value.")
-
 
     args = parser.parse_args()
 
@@ -54,7 +52,6 @@ if __name__ == "__main__":
     num_vis = args.num_vis
     T = args.T
     dt = args.dt
-    theta = args.theta
     gamma = args.gamma
     SAVE_LOG = args.SAVE_LOG
 
