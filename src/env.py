@@ -129,7 +129,6 @@ class RectangularObstacle:
             obs = plt.Rectangle(obs_pos, obs_dim[0], obs_dim[1], color='k', fill=True, zorder=6)
             ax.add_patch(obs)
 
-
 class CircleObstacle(Obstacle):
     def __init__(self, obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost):
         super().__init__(obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost)
@@ -214,5 +213,5 @@ if __name__ == "__main__":
     environment.plot_map(ax)
     plt.show()
 
-    dynamics = Dynamics_1(0.05, 0.5)
-    print(dynamics.compute_next_state(np.array([0, 0, 0, 0]), np.array([1, 1]), np.array([0, 0]), np.array([0, 0]), 0.05))
+    dynamics = Dynamics_Input_Integrator(0.05, 0.5)
+    print(dynamics.compute_next_state(np.array([0, 0, 0, 0]), np.array([1, 1]), np.array([0, 0]), np.array([0, 0])))

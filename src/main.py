@@ -155,7 +155,7 @@ if __name__ == "__main__":
                                 T, dt, num_trajs, num_vis, gammas=gamma_t, sigma=sigma, DR_method = DR_method, mu_hat = mu_hat)
             u_hist[t] = u_curr[0]  
             
-            x_hist[t+1] = dynamics.compute_next_state(x_hist[t], u_curr[0], np.random.multivariate_normal(np.zeros(2), np.identity(2)), mu)
+            x_hist[t+1] = dynamics.compute_next_state(x_hist[t], u_hist[t], np.random.multivariate_normal(np.zeros(2), np.identity(2)), mu)
                                     
             if Online:
                 gamma_t = gamma/(t+1)
