@@ -26,7 +26,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_simulation", type=int, default=100, help="Set number of simulations.")
     parser.add_argument("--Online", action='store_true', help="Online Learning")
     parser.add_argument("--observations", type=int, default=1, help="Set number of observations.")
-    parser.add_argument("--gamma", type=float, default=300, help="Set Gamma.")
     parser.add_argument("--sigma", type=float, default=0.5, help="Set Sigma")
     parser.add_argument("--SAVE_LOG", action='store_true', help="Save log")
     parser.add_argument("--mu", type=float, nargs=2, default=[-0.0, 0.0], help="Set mu value.")
@@ -54,6 +53,8 @@ if __name__ == "__main__":
     dt = args.dt
     gamma = args.gamma
     SAVE_LOG = args.SAVE_LOG
+
+    gamma = 1 / num_simulation
 
     Experiment_info = (
         f"DR_method: {DR_method}\n"
@@ -160,15 +161,15 @@ if __name__ == "__main__":
             if Online:
                 gamma_t = gamma/(t+1)
                 if Experiment == "1":
-                    dsi = np.linalg.pinv(dynamics.S) @ (x_hist[t+1] - x_hist[t] - dynamics.F @ x_hist[t] * dt)
-                    mu_hat = online_estimator.update(dsi)
+                    dxi = np.linalg.pinv(dynamics.S) @ (x_hist[t+1] - x_hist[t] - dynamics.F @ x_hist[t] * dt)
+                    mu_hat = online_estimator.update(dxi)
 
                 elif Experiment == "2":
                     Sigma_Matrix =  np.array([[np.cos(x_hist[t][2]), 0],
-                                            [np.sin(x_hist[t][2]), 0],
-                                            [0, sigma]])
-                    dsi = np.linalg.pinv(Sigma_Matrix) @ (x_hist[t+1] - x_hist[t] - np.identity(3) @ x_hist[t] * dt)
-                    mu_hat = online_estimator.update(dsi)
+                                              [np.sin(x_hist[t][2]), 0],
+                                              [0, sigma]])
+                    dxi = np.linalg.pinv(Sigma_Matrix) @ (x_hist[t+1] - x_hist[t])
+                    mu_hat = online_estimator.update(dxi)
 
                 else:
                     raise ValueError("Experiment number not recognized")

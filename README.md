@@ -43,9 +43,6 @@ python src/main.py [options]
 - `--observations`: Set the number of observations. Default is 1.
 
   Example: `--observations 5`
-- `--gamma`: Set the value of Gamma. Default is 300.
-
-  Example: `--gamma 350`
 - `--sigma`: Set the value of Sigma. Default is 0.5.
 
   Example: `--sigma 0.7`
