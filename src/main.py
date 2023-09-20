@@ -18,7 +18,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Set parameters for the experiment.")
 
-    # Add arguments
     parser.add_argument("--DR_method", choices=["DR NM", "DR GM", "RN"], default="DR NM", help="Set DR method.")
     parser.add_argument("--Experiment", choices=["1", "2"], default="1", help="Set experiment number.")
     parser.add_argument("--Visualization", action='store_true', help="Enable visualization. Default is False.")
@@ -27,7 +26,6 @@ if __name__ == "__main__":
     parser.add_argument("--Online", action='store_true', help="Online Learning")
     parser.add_argument("--observations", type=int, default=1, help="Set number of observations.")
     parser.add_argument("--sigma", type=float, default=0.5, help="Set Sigma")
-    parser.add_argument("--SAVE_LOG", action='store_true', help="Save log")
     parser.add_argument("--mu", type=float, nargs=2, default=[-0.0, 0.0], help="Set mu value.")
     parser.add_argument("--max_steps", type=int, default=1000, help="Set max steps.")
     parser.add_argument("--num_trajs", type=int, default=500, help="Set number of trajectories.")
@@ -51,9 +49,11 @@ if __name__ == "__main__":
     num_vis = args.num_vis
     T = args.T
     dt = args.dt
-    SAVE_LOG = args.SAVE_LOG
-
     gamma = 1 / num_simulation
+    success_time = []
+    success_index = []
+    fail_index = []
+    x_hists = np.zeros( (num_simulation, max_steps+1, 2) )*np.nan
 
     Experiment_info = (
         f"DR_method: {DR_method}\n"
@@ -65,7 +65,6 @@ if __name__ == "__main__":
         f"observations: {observations}\n"
         f"gamma: {gamma}\n"
         f"sigma: {sigma}\n"
-        f"SAVE_LOG: {SAVE_LOG}\n"
         f"mu: {mu}\n"
         f"max_steps: {max_steps}\n"
         f"num_trajs: {num_trajs}\n"
@@ -78,14 +77,11 @@ if __name__ == "__main__":
         np.random.seed(seed_value)
         random.seed(seed_value)
 
-    if not Online:
-        mu_hat = np.mean(np.random.multivariate_normal(mu, np.identity(2), observations), axis=0)
-
     if Experiment == "1":
         # Dynamics
         dynamics = Dynamics_Input_Integrator(dt, sigma)
         
-        x_goal = np.array([0.0,0.0])
+        x_goal = np.array([0.0, 0.0])
         x_init = np.array([-3.5, 2.5, 0.0, 0.0])
         
         # Map parameters
@@ -105,17 +101,17 @@ if __name__ == "__main__":
         # Dynamics
         dynamics = Dynamics_Unicycle(dt, sigma)
         
-        x_goal = np.array([0,0])
+        x_goal = np.array([0.0, 0.0])
         x_init = np.array([0, 5, 5.7])
 
         # Map parameters
-        boundary_x = [-2, 4]
-        boundary_y = [-2, 6]
+        boundary_x = [-2.0, 4.0]
+        boundary_y = [-2.0, 6.0]
         obs_cost = 1e2
         goal_tolerance = 1e-1
         dist_weight = 1e-2
-        obstacle_positions = np.array([[-1, 3]])
-        obstacle_radius = np.array([[2, 1]])
+        obstacle_positions = np.array([[-1.0, 3.0]])
+        obstacle_radius = np.array([[2.0, 1.0]])
 
         obstacle = RectangularObstacle(obstacle_positions = obstacle_positions, obstacle_dimensions = obstacle_radius,
                                         boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
@@ -125,10 +121,6 @@ if __name__ == "__main__":
         raise ValueError("Experiment number not recognized")
 
     print(Experiment_info)
-    success_time = []
-    success_index = []
-    fail_index = []
-    x_hists = np.zeros( (num_simulation, max_steps+1, 2) )*np.nan
 
     for k in tqdm(range(num_simulation), desc="Simulating", unit="sim"):
 
@@ -137,8 +129,8 @@ if __name__ == "__main__":
         hit_boundary = False
 
         u_curr = np.zeros((int(T//dt), 2))
-        x_hist = np.zeros( (max_steps+1, len(x_init)) )*np.nan
-        u_hist = np.zeros( (max_steps+1, 2) )*np.nan
+        x_hist = np.zeros((max_steps+1, len(x_init))) * np.nan
+        u_hist = np.zeros((max_steps+1, 2)) * np.nan
         x_hist[0] = x_init
         
         plot_every_n = 10
@@ -146,6 +138,8 @@ if __name__ == "__main__":
         if Online:
             online_estimator = OnlineMeanEstimator(mu, observations)
             mu_hat = online_estimator.get_mean()
+        else:
+            mu_hat = np.mean(np.random.multivariate_normal(mu, np.identity(2), observations), axis=0)
         
         gamma_t = gamma
         
@@ -194,10 +188,7 @@ if __name__ == "__main__":
                     ax.plot([x_goal[0]], [x_goal[1]], '*', markersize = 10, markerfacecolor = 'k', label = 'Target State',markeredgecolor = 'none' )
                     
                     environment.plot_map(ax)
-
-
                     ax.plot(x_hist[:,0], x_hist[:,1], 'r', label='Past state')
-                    
                     ax.plot(x_vis[:,:,0].T, x_vis[:,:,1].T, 'k', alpha=0.1, zorder=3)
                     
                     ax.set_xlim(boundary_x)
@@ -228,18 +219,9 @@ if __name__ == "__main__":
                 plt.tight_layout()
                 plt.show()
 
-    dir_path = final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG)
-
-    if SAVE_LOG:
-        file_path = os.path.join(dir_path, 'x_hists.json')
-
-        with open(file_path, 'w') as file:
-            json.dump(x_hists.tolist(), file)
-
-        df = pd.DataFrame({'success_index': success_index, 'success_time': success_time})
-
-        stat_info(df, dir_path, num_simulation, Experiment_info)
-
-        df.to_csv(os.path.join(dir_path, 'success_data.csv'), index=False)
-
-        
+    dir_path = final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG = True)
+    df = pd.DataFrame({'success_index': success_index, 'success_time': success_time})
+    df.to_csv(os.path.join(dir_path, 'success_data.csv'), index=False)
+    stat_info(df, dir_path, num_simulation, Experiment_info)
+    with open(os.path.join(dir_path, 'x_hists.json'), 'w') as file:
+        json.dump(x_hists.tolist(), file)
