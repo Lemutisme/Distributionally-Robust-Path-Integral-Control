@@ -25,58 +25,31 @@ python src/main.py [options]
 - `--DR_method`: Choose a DR method. Options are `"DR NM"`, `"DR GM"`, and `"RN"`. Default is `"DR NM"`.
 
   - `"DR NM"` represents `"DRPI Numerical Minimization"`,
-    `"DR GM"` represents `"DRPI Robust Global Minimization"`,
-    `"RN"` represents `"Risk-Neutral PIC"`
-  - Example: `--DR_method "DR NM"`
+  - `"DR GM"` represents `"DRPI Robust Global Minimization"`,
+  - `"RN"` represents `"Risk-Neutral PIC"`
 - `--Experiment`: Set the experiment number. Choose between `"1"` and `"2"`. Default is `"1"`.
 
   * `"1"` represents `"Input Integrator"`,
-    `"2"` represents `"Unicycle".`
-
-  - Example: `--Experiment "1"`
+  * `"2"` represents `"Unicycle".`
 - `--Visualization`: If included, this will visualize the figure.
-
-  * Example: `--Visualization`
-- `--seed_value`: Set the seed value. Default is not setting seed.
-
-  * Example: `--seed_value 123`
 - `--Online`: If included. this will enable online learning.
-
-  * Example: `--Online`
+- `--seed_value`: Set the seed value. Default is not setting seed.
 - `--num_simulation`: Set the number of simulations. Default is `100`.
-
-  * Example: `--num_simulation 200`
 - `--observations`: Set the number of observations. Default is `1`.
-
-  * Example: `--observations 5`
 - `--sigma`: Set the value of Sigma. Default is `0.5`.
-
-  * Example: `--sigma 0.7`
-- `--mu`: Set the mu value. Default is `[-0.0, 0.0]`.
-
-  * Example: `--mu [0.5 0.5]`
+- `--mu`: Set the mu value. Default is `[0.0, 0.0]`.
 - `--max_steps`: Set the maximum number of steps. Default is `1000`.
-
-  * Example: `--max_steps 1500`
 - `--num_trajs`: Set the number of trajectories. Default is `500`.
-
-  * Example: `--num_trajs 600`
-- `--num_vis`: Set the number of vis. Default is 500.
-
-  * Example: `--num_vis 450`
+- `--num_vis`: Set the number of vis. Default is `500`.
 - `--T`: Set the T value. Default is `2.0`.
-
-  * Example: `--T 3.0`
 - `--dt`: Set the dt value. Default is `0.05`.
-
-  * Example: `--dt 0.07`
 
 #### Example
 
 This is the standrad experiment.
 
 ```
-python src/main.py --DR_method "DR NM" --Experiment "1" --Online --seed_value 1 --num_simulation 1 --observations 1 --sigma 0.5
+python src/main.py --DR_method "DR NM" --Experiment "1" --Online --seed_value 1 --num_simulation 1 --observations 1
 ```
 
 ### To visualize the results from logs
@@ -91,19 +64,11 @@ python src/vis.py [options]
 
 - `--Experiment`: Choose a model number. Options are `"1"` and `"2"`. Default is `"1"`.
 
-  * `"DR NM"` represents `"DRPI Numerical Minimization"`,
-    `"DR GM"` represents `"DRPI Robust Global Minimization"`,
-    `"RN"` represents `"Risk-Neutral PIC"`
-  * Example: `--Experiment 1`
+  * `"1"` represents `"Input Integrator"`,
+  * `"2"` represents `"Unicycle"`.
 - `--Name`: Set the file name. Options include `"log/DRExp1"`, `"log/DRExp2"`, `"log/RNExp1"`, and `"log/RNExp2"`. Default is `"log/DRExp1"`.
-
-  * Example: `--Name "log/DRExp2"`
 - `--SAVE_LOG`: If included, this will save the figure.
-
-  * Example: `--SAVE_LOG`
 - `--Visualization`: If included, this will visualize the figure.
-
-  * Example: `--Visualization`
 
 #### Example:
 
