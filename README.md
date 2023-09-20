@@ -73,8 +73,7 @@ python src/main.py [options]
 This is the standrad experiment.
 
 ```
-python src/main.py --DR_method "DR NM" --Experiment "1" --Online --seed_value 1 --num_simulation 1 --observations 1 --gamma 1 --sigma 0.5 --SAVE_LOG
-
+python src/main.py --DR_method "DR NM" --Experiment "1" --Online --seed_value 1 --num_simulation 1 --observations 1 --sigma 0.5 --SAVE_LOG
 ```
 
 ### To visualize the results from logs

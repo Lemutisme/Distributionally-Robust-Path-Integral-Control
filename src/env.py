@@ -24,19 +24,37 @@ class Dynamics_1:
     def compute_next_state(self, state, control, noise, mu, dt):
         return self.F @ state + self.G @ (control * dt) + self.S @ (mu * dt + noise * np.sqrt(dt))
     
+    def dxi(self, x_hist, t):
+        return np.linalg.pinv(self.S) @ (x_hist[t+1] - x_hist[t] - self.F @ x_hist[t] * self.dt)
+    
 
 class Dynamics_2:
     def __init__(self, dt, sigma):
+        '''
+        F = 0
+        G = [cos(theta), 0]
+            [sin(theta), 0]
+            [0, sigma]
+        S = [cos(theta), 0]
+            [sin(theta), 0]
+            [0, sigma]
+        '''
         self.dt = dt
         self.sigma = sigma
     
     def compute_next_state(self, state, control, noise, mu, dt):
+
         next_state = np.zeros_like(state)
         next_state[0] = state[0] + (control[0] * dt + mu[0] * dt + noise[0] * np.sqrt(dt)) * np.cos(state[2])
         next_state[1] = state[1] + (control[0] * dt + mu[0] * dt + noise[0] * np.sqrt(dt)) * np.sin(state[2])
         next_state[2] = state[2] + self.sigma * (control[1]* dt + mu[1] * dt + noise[1] * np.sqrt(dt))
         return next_state
 
+    def dxi(self, x_hist, t):
+        Sigma_Matrix =  np.array([[np.cos(x_hist[t][2]), 0],
+                                  [np.sin(x_hist[t][2]), 0],
+                                  [0, self.sigma]])
+        return np.linalg.pinv(Sigma_Matrix) @ (x_hist[t+1] - x_hist[t])
 
 class Obstacle:
     def __init__(self, obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost):

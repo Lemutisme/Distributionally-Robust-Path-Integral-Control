@@ -51,7 +51,6 @@ if __name__ == "__main__":
     num_vis = args.num_vis
     T = args.T
     dt = args.dt
-    gamma = args.gamma
     SAVE_LOG = args.SAVE_LOG
 
     gamma = 1 / num_simulation
@@ -86,15 +85,15 @@ if __name__ == "__main__":
         # Dynamics
         dynamics = Dynamics_1(dt, sigma)
         
-        x_goal = np.array([0,0])
-        x_init = np.array([-3.5, 2.5, 0, 0])
+        x_goal = np.array([0.0,0.0])
+        x_init = np.array([-3.5, 2.5, 0.0, 0.0])
         
         # Map parameters
         boundary_x = [-4.0, 1.0]
         boundary_y = [-1.0, 4.0]
         obs_cost = 1e2
-        goal_tolerance = 0.1
-        dist_weight = 0.01
+        goal_tolerance = 1e-1
+        dist_weight = 1e-2
         obstacle_positions = np.array([[-2.75, 0.25]])
         obstacle_radius = np.array([2.0])
 
@@ -113,8 +112,8 @@ if __name__ == "__main__":
         boundary_x = [-2, 4]
         boundary_y = [-2, 6]
         obs_cost = 1e2
-        goal_tolerance = 0.05
-        dist_weight = 0.01
+        goal_tolerance = 1e-1
+        dist_weight = 1e-2
         obstacle_positions = np.array([[-1, 3]])
         obstacle_radius = np.array([[2, 1]])
 
@@ -160,19 +159,7 @@ if __name__ == "__main__":
                                     
             if Online:
                 gamma_t = gamma/(t+1)
-                if Experiment == "1":
-                    dxi = np.linalg.pinv(dynamics.S) @ (x_hist[t+1] - x_hist[t] - dynamics.F @ x_hist[t] * dt)
-                    mu_hat = online_estimator.update(dxi)
-
-                elif Experiment == "2":
-                    Sigma_Matrix =  np.array([[np.cos(x_hist[t][2]), 0],
-                                              [np.sin(x_hist[t][2]), 0],
-                                              [0, sigma]])
-                    dxi = np.linalg.pinv(Sigma_Matrix) @ (x_hist[t+1] - x_hist[t])
-                    mu_hat = online_estimator.update(dxi)
-
-                else:
-                    raise ValueError("Experiment number not recognized")
+                mu_hat = online_estimator.update(dynamics.dxi(x_hist, t))
 
             if environment.check_hit_any_obstacle(x_hist[t+1]):
                 terminate = True
