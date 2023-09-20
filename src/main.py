@@ -83,7 +83,7 @@ if __name__ == "__main__":
 
     if Experiment == "1":
         # Dynamics
-        dynamics = Dynamics_1(dt, sigma)
+        dynamics = Dynamics_Input_Integrator(dt, sigma)
         
         x_goal = np.array([0.0,0.0])
         x_init = np.array([-3.5, 2.5, 0.0, 0.0])
@@ -103,7 +103,7 @@ if __name__ == "__main__":
     elif Experiment == "2":
 
         # Dynamics
-        dynamics = Dynamics_2(dt, sigma)
+        dynamics = Dynamics_Unicycle(dt, sigma)
         
         x_goal = np.array([0,0])
         x_init = np.array([0, 5, 5.7])
@@ -144,7 +144,7 @@ if __name__ == "__main__":
         plot_every_n = 10
         
         if Online:
-            online_estimator = OnlineMeanEstimator(mu)
+            online_estimator = OnlineMeanEstimator(mu, observations)
             mu_hat = online_estimator.get_mean()
         
         gamma_t = gamma
@@ -155,7 +155,7 @@ if __name__ == "__main__":
                                 T, dt, num_trajs, num_vis, gammas=gamma_t, sigma=sigma, DR_method = DR_method, mu_hat = mu_hat)
             u_hist[t] = u_curr[0]  
             
-            x_hist[t+1] = dynamics.compute_next_state(x_hist[t], u_curr[0], np.random.multivariate_normal(np.zeros(2), np.identity(2)), mu, dt)
+            x_hist[t+1] = dynamics.compute_next_state(x_hist[t], u_curr[0], np.random.multivariate_normal(np.zeros(2), np.identity(2)), mu)
                                     
             if Online:
                 gamma_t = gamma/(t+1)

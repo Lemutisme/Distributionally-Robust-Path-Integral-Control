@@ -2,59 +2,61 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Polygon
 
-class Dynamics_1:
+class Dynamics_Input_Integrator:
     def __init__(self, dt, sigma):
         self.dt = dt
         self.sigma = sigma
-        self.F = np.array([[1, 0, dt, 0],
-                           [0, 1, 0, dt],
-                           [0, 0, 1, 0],
-                           [0, 0, 0, 1]])
-        
-        self.G = np.array([[0, 0],
-                           [0, 0],
-                           [sigma, 0],
-                           [0, sigma]])
-        
-        self.S = np.array([[0, 0],
-                           [0, 0],
-                           [sigma, 0],
-                           [0, sigma]])
 
-    def compute_next_state(self, state, control, noise, mu, dt):
-        return self.F @ state + self.G @ (control * dt) + self.S @ (mu * dt + noise * np.sqrt(dt))
+    def F_Matrix(self, state):
+        return np.array([[0, 0, self.dt, 0],
+                         [0, 0, 0, self.dt],
+                         [0, 0, 0, 0],
+                         [0, 0, 0, 0]])
+    
+    def G_Matrix(self, state):
+        return np.array([[0, 0],
+                         [0, 0],
+                         [self.sigma, 0],
+                         [0, self.sigma]])
+    
+    def Sigma_Matrix(self, state):
+        return np.array([[0, 0],
+                         [0, 0],
+                         [self.sigma, 0],
+                         [0, self.sigma]])
+    
+    def compute_next_state(self, state, control, noise, mu):
+        return state + self.F_Matrix(state) @ state + self.G_Matrix(state) @ (control * self.dt) + self.Sigma_Matrix(state) @ (mu * self.dt + noise * np.sqrt(self.dt))
     
     def dxi(self, x_hist, t):
-        return np.linalg.pinv(self.S) @ (x_hist[t+1] - x_hist[t] - self.F @ x_hist[t] * self.dt)
+        return np.linalg.pinv(self.Sigma_Matrix(x_hist[t])) @ (x_hist[t+1] - x_hist[t] - self.F_Matrix(x_hist[t]) @ x_hist[t] * self.dt)
     
 
-class Dynamics_2:
+class Dynamics_Unicycle:
     def __init__(self, dt, sigma):
-        '''
-        F = 0
-        G = [cos(theta), 0]
-            [sin(theta), 0]
-            [0, sigma]
-        S = [cos(theta), 0]
-            [sin(theta), 0]
-            [0, sigma]
-        '''
         self.dt = dt
         self.sigma = sigma
+
+    def F_Matrix(self, state):
+        return np.array([[0, 0, 0],
+                         [0, 0, 0],
+                         [0, 0, 0]])
     
-    def compute_next_state(self, state, control, noise, mu, dt):
-
-        next_state = np.zeros_like(state)
-        next_state[0] = state[0] + (control[0] * dt + mu[0] * dt + noise[0] * np.sqrt(dt)) * np.cos(state[2])
-        next_state[1] = state[1] + (control[0] * dt + mu[0] * dt + noise[0] * np.sqrt(dt)) * np.sin(state[2])
-        next_state[2] = state[2] + self.sigma * (control[1]* dt + mu[1] * dt + noise[1] * np.sqrt(dt))
-        return next_state
-
+    def G_Matrix(self, state):
+        return np.array([[np.cos(state[2]), 0],
+                         [np.sin(state[2]), 0],
+                         [0, self.sigma]])  
+    
+    def Sigma_Matrix(self, state):
+        return np.array([[np.cos(state[2]), 0],
+                         [np.sin(state[2]), 0],
+                         [0, self.sigma]])
+    
+    def compute_next_state(self, state, control, noise, mu):
+        return state + self.F_Matrix(state) @ state + self.G_Matrix(state) @ (control * self.dt) + self.Sigma_Matrix(state) @ (mu * self.dt + noise * np.sqrt(self.dt))
+    
     def dxi(self, x_hist, t):
-        Sigma_Matrix =  np.array([[np.cos(x_hist[t][2]), 0],
-                                  [np.sin(x_hist[t][2]), 0],
-                                  [0, self.sigma]])
-        return np.linalg.pinv(Sigma_Matrix) @ (x_hist[t+1] - x_hist[t])
+        return np.linalg.pinv(self.Sigma_Matrix(x_hist[t])) @ (x_hist[t+1] - x_hist[t] - self.F_Matrix(x_hist[t]) @ x_hist[t] * self.dt)
 
 class Obstacle:
     def __init__(self, obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost):

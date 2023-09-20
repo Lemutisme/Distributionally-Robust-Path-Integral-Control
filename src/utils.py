@@ -3,8 +3,8 @@ import numpy as np
 from scipy.optimize import minimize, basinhopping, differential_evolution
 
 class OnlineMeanEstimator:
-    def __init__(self, mu):
-        self.n = 1
+    def __init__(self, mu, N):
+        self.n = N
         self.mean = np.mean(np.random.multivariate_normal(mu, np.identity(len(mu)), self.n), axis=0)
 
     def update(self, x):
@@ -66,7 +66,7 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
             x_vis[k, 0, :] = x_curr[:2]    
         
         for t in range(time_steps) :
-            x_curr = dynamics.compute_next_state(x_curr, np.zeros(2), noise_samples[k, t, :], mu_hat, dt)
+            x_curr = dynamics.compute_next_state(x_curr, np.zeros(2), noise_samples[k, t, :], mu_hat)
             
             if k < num_vis :
                 x_vis[k, t, :] = x_curr[:2]    
