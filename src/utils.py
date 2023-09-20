@@ -92,7 +92,8 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
     return costs, x_vis
 
 def opt_cost_func(lambda_, gamma, costs, num_trajs):
-    lambda_prime = 1 / (1 - lambda_)
+    epsilon = 1e-10
+    lambda_prime = 1 / (1 - lambda_ + epsilon)
     return gamma / lambda_ - lambda_prime * np.log(1/num_trajs * np.sum(np.exp(- costs / lambda_prime)))
 
 def update_useq_risk_neutral(costs, noise_samples, T, dt, lambda_neut=1, n=2) :

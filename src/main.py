@@ -49,7 +49,7 @@ if __name__ == "__main__":
     num_vis = args.num_vis
     T = args.T
     dt = args.dt
-    gamma = 1 / num_simulation
+    gamma = 1 / observations
     success_time = []
     success_index = []
     fail_index = []
