@@ -93,9 +93,9 @@ python src/vis.py --Experiment "1" --Name "log/DRExp1" --Visualization
 
 ### Performance of different schemes
 
-| Model             | Scheme         | Success Rate (%) | Arrive Time (s) Mean | Std. Dev. | 95 prct. |
-| ----------------- | -------------- | ---------------- | -------------------- | --------- | -------- |
-| Double Integrator | Non-DR Control | 66               | 21.30                | 12.63     | 44.42    |
-| Double Integrator | DR Control     | 96               | 8.04                 | 2.25      | 12.32    |
-| Unicycle          | Non-DR Control | 19               | 25.89                | 11.13     | 44.52    |
-| Unicycle          | DR Control     | 78               | 16.94                | 6.17      | 28.30    |
+| Model             | Scheme | Success Rate (%) | Arrive Time (s) Mean | Std. Dev. | 95 prct. |
+| ----------------- | ------ | ---------------- | -------------------- | --------- | -------- |
+| Double Integrator | PIC    | 66               | 21.30                | 12.63     | 44.42    |
+| Double Integrator | DRPI   | 96               | 8.04                 | 2.25      | 12.32    |
+| Unicycle          | PIC    | 19               | 25.89                | 11.13     | 44.52    |
+| Unicycle          | DRPI   | 78               | 16.94                | 6.17      | 28.30    |

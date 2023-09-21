@@ -24,7 +24,7 @@ if __name__ == "__main__":
     parser.add_argument("--Online", action='store_true', help="Online Learning")
     parser.add_argument("--observations", type=int, default=1, help="Set number of observations.")
     parser.add_argument("--sigma", type=float, default=0.5, help="Set Sigma")
-    parser.add_argument("--mu", type=float, nargs=2, default=[-0.0, 0.0], help="Set mu value.")
+    parser.add_argument("--mu", type=float, nargs=2, default=[0.0, 0.0], help="Set mu value.")
     parser.add_argument("--max_steps", type=int, default=1000, help="Set max steps.")
     parser.add_argument("--num_trajs", type=int, default=500, help="Set number of trajectories.")
     parser.add_argument("--num_vis", type=int, default=500, help="Set number of vis.")
@@ -111,7 +111,7 @@ if __name__ == "__main__":
         obstacle_positions = np.array([[-1.0, 3.0]])
         obstacle_radius = np.array([[2.0, 1.0]])
 
-        obstacle = RectangularObstacle(obstacle_positions = obstacle_positions, obstacle_dimensions = obstacle_radius,
+        obstacle = RectangularObstacle(obstacle_positions = obstacle_positions, obstacle_radius = obstacle_radius,
                                         boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
         environment = Map([obstacle])
 
