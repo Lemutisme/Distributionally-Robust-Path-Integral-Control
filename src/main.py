@@ -1,17 +1,15 @@
 import os
-import random
 import json
+import random
+import argparse
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 
-import argparse
 from tqdm import tqdm
-
 from env import *
 from utils import OnlineMeanEstimator, stat_info, dist_to_goal_function, path_integral
-from vis import final_plot
+from vis import trajectory_plot, simulation_plot, final_plot
 
 
 if __name__ == "__main__":
@@ -182,42 +180,13 @@ if __name__ == "__main__":
 
             if Visualization:
                 if t % plot_every_n == 0 :
-
-                    fig, ax = plt.subplots()
-                    ax.plot([x_init[0]], [x_init[1]], '8', markersize = 10, markerfacecolor = 'k', label = 'Initial State',markeredgecolor = 'none' )
-                    ax.plot([x_goal[0]], [x_goal[1]], '*', markersize = 10, markerfacecolor = 'k', label = 'Target State',markeredgecolor = 'none' )
-                    
-                    environment.plot_map(ax)
-                    ax.plot(x_hist[:,0], x_hist[:,1], 'r', label='Past state')
-                    ax.plot(x_vis[:,:,0].T, x_vis[:,:,1].T, 'k', alpha=0.1, zorder=3)
-                    
-                    ax.set_xlim(boundary_x)
-                    ax.set_ylim(boundary_y)
-                    
-                    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
-                    ax.set_aspect('equal')
-                    plt.tight_layout()
-                    plt.show()
+                    trajectory_plot(x_hist, x_vis, x_init, x_goal, boundary_x, boundary_y, environment)
                 
         x_hists[k, :t, :] = x_hist[:t, :2]
 
         if Visualization:
             if terminate:
-                fig, ax = plt.subplots()
-                ax.plot([x_init[0]], [x_init[1]], '8', markersize=20, markerfacecolor='lime', label='Initial State', markeredgecolor='k', zorder=6)
-                ax.plot([x_goal[0]], [x_goal[1]], '*', markersize=20, markerfacecolor='lime', label='Target State', markeredgecolor='k', zorder=6)
-                environment.plot_map(ax)
-
-                ax.plot(x_hist[:,0], x_hist[:,1], 'r', label='Past state')
-                ax.set_xlim(boundary_x)
-                ax.set_ylim(boundary_y)
-                ax.set_xlabel(r'$p_{x}$')
-                ax.set_ylabel(r'$p_{y}$')
-                plt.gcf().set_dpi(600)
-                ax.set_title(f'Trajectories {k+1} in {num_simulation} simulations.')
-                ax.set_aspect('equal')
-                plt.tight_layout()
-                plt.show()
+                simulation_plot(x_hist, x_init, x_goal, boundary_x, boundary_y, environment, k, num_simulation)
 
     dir_path = final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG = True)
     df = pd.DataFrame({'success_index': success_index, 'success_time': success_time})

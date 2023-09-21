@@ -1,13 +1,48 @@
 import os
 import json
 import argparse
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from datetime import datetime
 
+from datetime import datetime
 from env import Map, Obstacle, RectangularObstacle
+
+def trajectory_plot(x_hist, x_vis, x_init, x_goal, boundary_x, boundary_y, environment):
+    fig, ax = plt.subplots()
+    ax.plot([x_init[0]], [x_init[1]], '8', markersize = 10, markerfacecolor = 'k', label = 'Initial State',markeredgecolor = 'none' )
+    ax.plot([x_goal[0]], [x_goal[1]], '*', markersize = 10, markerfacecolor = 'k', label = 'Target State',markeredgecolor = 'none' )
+                    
+    environment.plot_map(ax)
+    ax.plot(x_hist[:,0], x_hist[:,1], 'r', label='Past state')
+    ax.plot(x_vis[:,:,0].T, x_vis[:,:,1].T, 'k', alpha=0.1, zorder=3)
+                    
+    ax.set_xlim(boundary_x)
+    ax.set_ylim(boundary_y)
+                    
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
+    ax.set_aspect('equal')
+    plt.tight_layout()
+    plt.show()
+
+def simulation_plot(x_hist, x_init, x_goal, boundary_x, boundary_y, environment, k, num_simulation):
+    fig, ax = plt.subplots()
+    ax.plot([x_init[0]], [x_init[1]], '8', markersize=20, markerfacecolor='lime', label='Initial State', markeredgecolor='k', zorder=6)
+    ax.plot([x_goal[0]], [x_goal[1]], '*', markersize=20, markerfacecolor='lime', label='Target State', markeredgecolor='k', zorder=6)
+    environment.plot_map(ax)
+
+    ax.plot(x_hist[:,0], x_hist[:,1], 'r', label='Past state')
+    ax.set_xlim(boundary_x)
+    ax.set_ylim(boundary_y)
+    ax.set_xlabel(r'$p_{x}$')
+    ax.set_ylabel(r'$p_{y}$')
+    plt.gcf().set_dpi(600)
+    ax.set_title(f'Trajectories {k+1} in {num_simulation} simulations.')
+    ax.set_aspect('equal')
+    plt.tight_layout()
+    plt.show()
 
 def final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG):
     sns.set_style("white")
@@ -69,7 +104,7 @@ def extract_log_files(base_path):
     
     return success_data, x_hists_ndarray
 
-def extract_para(Experiment, Name, SAVE_LOG):
+def extract_para(Experiment, Name):
 
     success_data, x_hists = extract_log_files(Name)
 
@@ -115,7 +150,7 @@ def extract_para(Experiment, Name, SAVE_LOG):
     else:
         raise ValueError("Experiment number not recognized")
     
-    return x_hists, success_index, fail_index, x_init, x_goal, boundary_x, boundary_y, environment, SAVE_LOG, Name
+    return x_hists, success_index, fail_index, x_init, x_goal, boundary_x, boundary_y, environment, Name
 
 if __name__ == "__main__":
 
@@ -131,6 +166,6 @@ if __name__ == "__main__":
     SAVE_LOG = parser.parse_args().SAVE_LOG
     Visualization = parser.parse_args().Visualization
 
-    x_hists, success_index, fail_index, x_init, x_goal, boundary_x, boundary_y, environment, SAVE_LOG, Name = extract_para(Exp, Name, SAVE_LOG)
+    x_hists, success_index, fail_index, x_init, x_goal, boundary_x, boundary_y, environment, Name = extract_para(Exp, Name)
 
     final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG)

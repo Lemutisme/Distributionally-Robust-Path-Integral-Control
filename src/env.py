@@ -1,12 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 from matplotlib.patches import Polygon
 
-class Dynamics_Input_Integrator:
+class Dynamics:
     def __init__(self, dt, sigma):
         self.dt = dt
         self.sigma = sigma
+        
+    def F_Matrix(self, state):
+        raise NotImplementedError("F_Matrix method must be implemented in derived classes.")
+    
+    def G_Matrix(self, state):
+        raise NotImplementedError("G_Matrix method must be implemented in derived classes.")
+    
+    def Sigma_Matrix(self, state):
+        raise NotImplementedError("Sigma_Matrix method must be implemented in derived classes.")
+    
+    def compute_next_state(self, state, control, noise, mu):
+        return state + self.F_Matrix(state) @ state + self.G_Matrix(state) @ (control * self.dt) + self.Sigma_Matrix(state) @ (mu * self.dt + noise * np.sqrt(self.dt))
+    
+    def dxi(self, x_hist, t):
+        return np.linalg.pinv(self.Sigma_Matrix(x_hist[t])) @ (x_hist[t+1] - x_hist[t] - self.F_Matrix(x_hist[t]) @ (x_hist[t] * self.dt))
 
+class Dynamics_Input_Integrator(Dynamics):
     def F_Matrix(self, state):
         return np.array([[0, 0, self.dt, 0],
                          [0, 0, 0, self.dt],
@@ -24,19 +41,8 @@ class Dynamics_Input_Integrator:
                          [0, 0],
                          [self.sigma, 0],
                          [0, self.sigma]])
-    
-    def compute_next_state(self, state, control, noise, mu):
-        return state + self.F_Matrix(state) @ state + self.G_Matrix(state) @ (control * self.dt) + self.Sigma_Matrix(state) @ (mu * self.dt + noise * np.sqrt(self.dt))
-    
-    def dxi(self, x_hist, t):
-        return np.linalg.pinv(self.Sigma_Matrix(x_hist[t])) @ (x_hist[t+1] - x_hist[t] - self.F_Matrix(x_hist[t]) @ x_hist[t] * self.dt)
-    
 
-class Dynamics_Unicycle:
-    def __init__(self, dt, sigma):
-        self.dt = dt
-        self.sigma = sigma
-
+class Dynamics_Unicycle(Dynamics):
     def F_Matrix(self, state):
         return np.array([[0, 0, 0],
                          [0, 0, 0],
@@ -51,12 +57,6 @@ class Dynamics_Unicycle:
         return np.array([[np.cos(state[2]), 0],
                          [np.sin(state[2]), 0],
                          [0, self.sigma]])
-    
-    def compute_next_state(self, state, control, noise, mu):
-        return state + self.F_Matrix(state) @ state + self.G_Matrix(state) @ (control * self.dt) + self.Sigma_Matrix(state) @ (mu * self.dt + noise * np.sqrt(self.dt))
-    
-    def dxi(self, x_hist, t):
-        return np.linalg.pinv(self.Sigma_Matrix(x_hist[t])) @ (x_hist[t+1] - x_hist[t] - self.F_Matrix(x_hist[t]) @ x_hist[t] * self.dt)
 
 class Obstacle:
     def __init__(self, obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost):

@@ -1,5 +1,6 @@
 import os
 import numpy as np
+
 from scipy.optimize import minimize, basinhopping, differential_evolution
 
 class OnlineMeanEstimator:
@@ -26,31 +27,6 @@ def dist_to_goal_function(x_curr, x_goal):
 
 def sample_noise(mu, T=10.0, dt=0.5, num_trajs=500, n=2) :
     return np.random.multivariate_normal(mu, np.identity(len(mu)) , [num_trajs, int(np.floor(T/dt))])
-
-def stat_info(df, dir_path, num_simulation, Experiment_info):
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
-
-    mean_success_time = df['success_time'].mean()
-    variance_success_time = df['success_time'].var()
-    standard_deviation_success_time = df['success_time'].std()
-    percentiles_success_time = df['success_time'].quantile([0.05, 0.25, 0.50, 0.75, 0.95])
-    success_rate = len(df['success_time']) / num_simulation
-    
-    info = (
-        "\nStatistics info:\n"
-        f"Success rate: {success_rate * 100}%\n"
-        f"Mean of success_time: {mean_success_time}\n"
-        f"Variance of success_time: {variance_success_time}\n"
-        f"Standard Deviation of success_time: {standard_deviation_success_time}\n"
-        "Percentiles of success_time:\n"
-        f"{percentiles_success_time}\n"
-    )
-
-    print(info)
-    file_path = os.path.join(dir_path, 'statistics_info.txt')
-    with open(file_path, 'w') as file:
-        file.write(Experiment_info + info)
 
 def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_samples, dist_weight, sigma, mu_hat, obs_cost = 10, num_trajs=500, num_vis=500, goal_tolerance=0.1) :
     costs = np.zeros(num_trajs)
@@ -94,7 +70,7 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
 def opt_cost_func(lambda_, gamma, costs, num_trajs):
     epsilon = 1e-10
     lambda_prime = 1 / (1 - lambda_ + epsilon)
-    return gamma / lambda_ - lambda_prime * np.log(1/num_trajs * np.sum(np.exp(- costs / lambda_prime)))
+    return gamma / (lambda_ + epsilon) - lambda_prime * np.log(1/num_trajs * np.sum(np.exp(- costs / lambda_prime)))
 
 def update_useq_risk_neutral(costs, noise_samples, T, dt, lambda_neut=1, n=2) :
     costs = np.exp( - (costs) / lambda_neut )     
@@ -182,3 +158,28 @@ def path_integral(dynamics, environment, mu, x_init, x_goal, dist_weight, obs_co
     else :
         raise ValueError("DR_method not recognized")
     return u_curr, x_vis
+
+def stat_info(df, dir_path, num_simulation, Experiment_info):
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+
+    mean_success_time = df['success_time'].mean()
+    variance_success_time = df['success_time'].var()
+    standard_deviation_success_time = df['success_time'].std()
+    percentiles_success_time = df['success_time'].quantile([0.05, 0.25, 0.50, 0.75, 0.95])
+    success_rate = len(df['success_time']) / num_simulation
+    
+    info = (
+        "\nStatistics info:\n"
+        f"Success rate: {success_rate * 100}%\n"
+        f"Mean of success_time: {mean_success_time}\n"
+        f"Variance of success_time: {variance_success_time}\n"
+        f"Standard Deviation of success_time: {standard_deviation_success_time}\n"
+        "Percentiles of success_time:\n"
+        f"{percentiles_success_time}\n"
+    )
+
+    print(info)
+    file_path = os.path.join(dir_path, 'statistics_info.txt')
+    with open(file_path, 'w') as file:
+        file.write(Experiment_info + info)
