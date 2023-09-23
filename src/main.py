@@ -1,16 +1,11 @@
-import os
-import json
 import random
 import argparse
-
 import numpy as np
-import pandas as pd
-
 from tqdm import tqdm
-from env import *
-from utils import OnlineMeanEstimator, stat_info, dist_to_goal_function, path_integral
-from vis import trajectory_plot, simulation_plot, final_plot
 
+from env import Dynamics_Input_Integrator, Dynamics_Unicycle
+from utils import OnlineMeanEstimator, stat_info, path_integral, extract_para
+from vis import trajectory_plot, simulation_plot, final_plot
 
 if __name__ == "__main__":
 
@@ -30,6 +25,8 @@ if __name__ == "__main__":
     parser.add_argument("--num_vis", type=int, default=500, help="Set number of vis.")
     parser.add_argument("--T", type=float, default=2.0, help="Set T value.")
     parser.add_argument("--dt", type=float, default=0.05, help="Set dt value.")
+    parser.add_argument("--goal_tolerance", type=float, default=0.1, help="Set goal tolerance.")
+    parser.add_argument("--dist_weight", type=float, default=0.01, help="Set dist weight.")
 
     args = parser.parse_args()
 
@@ -45,6 +42,8 @@ if __name__ == "__main__":
     max_steps = args.max_steps
     num_trajs = args.num_trajs
     num_vis = args.num_vis
+    goal_tolerance = args.goal_tolerance
+    dist_weight = args.dist_weight
     T = args.T
     dt = args.dt
     gamma = 1 / observations
@@ -52,6 +51,7 @@ if __name__ == "__main__":
     success_index = []
     fail_index = []
     x_hists = np.zeros( (num_simulation, max_steps+1, 2) )*np.nan
+    time_steps = int(np.floor(T/dt))
 
     Experiment_info = (
         f"DR_method: {DR_method}\n"
@@ -69,6 +69,9 @@ if __name__ == "__main__":
         f"num_vis: {num_vis}\n"
         f"T: {T}\n"
         f"dt: {dt}\n"
+        f"goal_tolerance: {goal_tolerance}\n"
+        f"dist_weight: {dist_weight}\n"
+        f"time_step: {time_steps}\n"
     )
 
     if seed_value:
@@ -76,47 +79,15 @@ if __name__ == "__main__":
         random.seed(seed_value)
 
     if Experiment == "1":
-        # Dynamics
         dynamics = Dynamics_Input_Integrator(dt, sigma)
-        
-        x_goal = np.array([0.0, 0.0])
-        x_init = np.array([-3.5, 2.5, 0.0, 0.0])
-        
-        # Map parameters
-        boundary_x = [-4.0, 1.0]
-        boundary_y = [-1.0, 4.0]
-        obs_cost = 1e2
-        goal_tolerance = 1e-1
-        dist_weight = 1e-2
-        obstacle_positions = np.array([[-2.75, 0.25]])
-        obstacle_radius = np.array([2.0])
-
-        obstacle = Obstacle(obstacle_positions = obstacle_positions, obstacle_radius = obstacle_radius, boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
-        environment = Map([obstacle])
 
     elif Experiment == "2":
-
-        # Dynamics
         dynamics = Dynamics_Unicycle(dt, sigma)
-        
-        x_goal = np.array([0.0, 0.0])
-        x_init = np.array([0, 5, 5.7])
-
-        # Map parameters
-        boundary_x = [-2.0, 4.0]
-        boundary_y = [-2.0, 6.0]
-        obs_cost = 1e2
-        goal_tolerance = 1e-1
-        dist_weight = 1e-2
-        obstacle_positions = np.array([[-1.0, 3.0]])
-        obstacle_radius = np.array([[2.0, 1.0]])
-
-        obstacle = RectangularObstacle(obstacle_positions = obstacle_positions, obstacle_radius = obstacle_radius,
-                                        boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
-        environment = Map([obstacle])
 
     else:
         raise ValueError("Experiment number not recognized")
+    
+    x_init, x_goal, environment = extract_para(Experiment)
 
     print(Experiment_info)
 
@@ -126,7 +97,7 @@ if __name__ == "__main__":
         hit_obstacle = False
         hit_boundary = False
 
-        u_curr = np.zeros((int(T//dt), 2))
+        u_curr = np.zeros((time_steps, 2))
         x_hist = np.zeros((max_steps+1, len(x_init))) * np.nan
         u_hist = np.zeros((max_steps+1, 2)) * np.nan
         x_hist[0] = x_init
@@ -142,9 +113,8 @@ if __name__ == "__main__":
         gamma_t = gamma
         
         for t in range(max_steps) :
-            u_curr, x_vis = path_integral(dynamics, environment, mu, x_hist[t], x_goal, dist_weight, 
-                                obs_cost ,obstacle_positions, obstacle_radius, 
-                                T, dt, num_trajs, num_vis, gammas=gamma_t, sigma=sigma, DR_method = DR_method, mu_hat = mu_hat)
+            u_curr, x_vis = path_integral(dynamics, environment, mu, x_hist[t], x_goal, dist_weight, time_steps,
+                                T, dt, num_trajs, num_vis, gammas=gamma_t, DR_method = DR_method, mu_hat = mu_hat)
             u_hist[t] = u_curr[0]  
             
             x_hist[t+1] = dynamics.compute_next_state(x_hist[t], u_hist[t], np.random.multivariate_normal(np.zeros(2), np.identity(2)), mu)
@@ -165,7 +135,7 @@ if __name__ == "__main__":
                 print("Hit boundary")
                 break    
 
-            if dist_to_goal_function(x_hist[t+1, :2], x_goal) <= goal_tolerance :
+            if np.linalg.norm(x_hist[t+1, :2] - x_goal) <= goal_tolerance :
                 print("Goal reached at t={:.2f}s".format(t*dt))
                 success_time.append(t*dt)
                 terminate = True
@@ -180,17 +150,13 @@ if __name__ == "__main__":
 
             if Visualization:
                 if t % plot_every_n == 0 :
-                    trajectory_plot(x_hist, x_vis, x_init, x_goal, boundary_x, boundary_y, environment)
+                    trajectory_plot(x_hist, x_vis, x_init, x_goal, environment)
                 
         x_hists[k, :t, :] = x_hist[:t, :2]
 
         if Visualization:
             if terminate:
-                simulation_plot(x_hist, x_init, x_goal, boundary_x, boundary_y, environment, k, num_simulation)
+                simulation_plot(x_hist, x_init, x_goal, environment, k, num_simulation)
 
-    dir_path = final_plot(x_hists, x_init, x_goal, boundary_x, boundary_y, success_index, fail_index, environment, Visualization, SAVE_LOG = True)
-    df = pd.DataFrame({'success_index': success_index, 'success_time': success_time})
-    df.to_csv(os.path.join(dir_path, 'success_data.csv'), index=False)
+    dir_path, df = final_plot(x_hists, x_init, x_goal, success_index, success_time, fail_index, environment, Visualization, SAVE_LOG = True)
     stat_info(df, dir_path, num_simulation, Experiment_info)
-    with open(os.path.join(dir_path, 'x_hists.json'), 'w') as file:
-        json.dump(x_hists.tolist(), file)

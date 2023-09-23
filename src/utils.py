@@ -1,6 +1,8 @@
 import os
+import json
 import numpy as np
-
+import pandas as pd
+from env import *
 from scipy.optimize import minimize, basinhopping, differential_evolution
 
 class OnlineMeanEstimator:
@@ -22,16 +24,11 @@ def stage_cost(dist2, dist_weight = 1) :
 def term_cost(dist2, goal_reached) :
     return (1 - float(goal_reached)) * dist2
 
-def dist_to_goal_function(x_curr, x_goal):
-    return np.linalg.norm(x_curr - x_goal)
+def sample_noise(mu, time_steps, num_trajs=500) :
+    return np.random.multivariate_normal(mu, np.identity(len(mu)) , [num_trajs, time_steps])
 
-def sample_noise(mu, T=10.0, dt=0.5, num_trajs=500, n=2) :
-    return np.random.multivariate_normal(mu, np.identity(len(mu)) , [num_trajs, int(np.floor(T/dt))])
-
-def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_samples, dist_weight, sigma, mu_hat, obs_cost = 10, num_trajs=500, num_vis=500, goal_tolerance=0.1) :
+def rollout(dynamics, environment, x_init, x_goal, time_steps, noise_samples, dist_weight, mu_hat, num_trajs=500, num_vis=500, goal_tolerance=0.1) :
     costs = np.zeros(num_trajs)
-    time_steps = int(T//dt)
-    
     x_vis = np.zeros( (num_vis, time_steps, 2) )*np.nan
     
     for k in range(num_trajs) :
@@ -47,13 +44,13 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
             if k < num_vis :
                 x_vis[k, t, :] = x_curr[:2]    
                 
-            dist_to_goal = dist_to_goal_function(x_curr[:2], x_goal)
+            dist_to_goal = np.linalg.norm(x_curr[:2] - x_goal)
             costs[k] += stage_cost(dist_to_goal, dist_weight)
             
             if dist_to_goal <= goal_tolerance :
                 break
             
-            num_obs = len(obs_pos)
+            num_obs = len(environment.obstacles[0].obstacle_positions)
             
             if num_obs != 0 :
                 # Obstacle cost
@@ -70,14 +67,14 @@ def rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_
 def opt_cost_func(lambda_, gamma, costs, num_trajs):
     epsilon = 1e-10
     lambda_prime = 1 / (1 - lambda_ + epsilon)
-    return gamma / (lambda_ + epsilon) - lambda_prime * np.log(1/num_trajs * np.sum(np.exp(- costs / lambda_prime)))
+    return gamma / (lambda_ + epsilon) - lambda_prime * np.log(1 / num_trajs * np.sum(np.exp(- costs / lambda_prime)))
 
 def update_useq_risk_neutral(costs, noise_samples, T, dt, lambda_neut=1, n=2) :
     costs = np.exp( - (costs) / lambda_neut )     
     sum_costs = np.sum(costs)    
     
     time_steps = int(np.floor(T/dt))
-    u_curr = np.zeros((time_steps,n))
+    u_curr = np.zeros((time_steps, n))
     for t in range(time_steps) :
         for k in range(len(costs)) :
             u_curr[t,:] += (costs[k] / sum_costs ) * noise_samples[k,t,:] / np.sqrt(dt) 
@@ -145,10 +142,10 @@ def update_useq_GM(costs, noise_samples, gamma, T, dt):
 
     return update_useq_risk_neutral(costs, noise_samples, T, dt, lambda_neut=lambda_r, n=2)
 
-def path_integral(dynamics, environment, mu, x_init, x_goal, dist_weight, obs_cost, obs_pos, obs_r, T, dt, num_trajs, num_vis, gammas, sigma, DR_method, mu_hat):
+def path_integral(dynamics, environment, mu, x_init, x_goal, dist_weight, time_steps, T, dt, num_trajs, num_vis, gammas, DR_method, mu_hat):
     
-    noise_samples = sample_noise(mu, T, dt, num_trajs, n=2)
-    costs, x_vis = rollout(dynamics, environment, x_init, x_goal, obs_pos, obs_r, T, dt, noise_samples, dist_weight, sigma, mu_hat, obs_cost, num_trajs, num_vis, goal_tolerance=0.1)   
+    noise_samples = sample_noise(mu, time_steps, num_trajs)
+    costs, x_vis = rollout(dynamics, environment, x_init, x_goal, time_steps, noise_samples, dist_weight, mu_hat, num_trajs, num_vis, goal_tolerance=0.1)   
     if DR_method == "DR NM" :
         u_curr = update_useq_NM(costs, noise_samples, gammas, T, dt)
     elif DR_method == "DR GM" :
@@ -183,3 +180,60 @@ def stat_info(df, dir_path, num_simulation, Experiment_info):
     file_path = os.path.join(dir_path, 'statistics_info.txt')
     with open(file_path, 'w') as file:
         file.write(Experiment_info + info)
+
+def extract_para(Experiment):
+
+    if Experiment == "1":
+
+        x_goal = np.array([0,0])
+        x_init = np.array([-3.5, 2.5, 0, 0])
+        
+        # Map parameters
+        boundary_x = [-4.0, 1.0]
+        boundary_y = [-1.0, 4.0]
+        obs_cost = 1e2
+        
+        obstacle_positions = np.array([[-2.75, 0.25]])
+        obstacle_radius = np.array([2.0])
+
+        obstacle = Obstacle(obstacle_positions = obstacle_positions, obstacle_radius = obstacle_radius, boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
+
+        environment = Map([obstacle])
+
+    elif Experiment == "2":
+
+        x_goal = np.array([0,0])
+        x_init = np.array([0, 5, 5.7])
+        
+        # Map parameters
+        boundary_x = [-2, 4]
+        boundary_y = [-2, 6]
+        obs_cost = 1e2
+
+        obstacle_positions = np.array([[-1, 3]])
+        obstacle_radius = np.array([[2, 1]])
+
+        obstacle = RectangularObstacle(obstacle_positions = obstacle_positions, obstacle_dimensions = obstacle_radius,
+                                        boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
+        environment = Map([obstacle])
+
+    else:
+        raise ValueError("Experiment number not recognized")
+    
+    return x_init, x_goal, environment
+
+def extract_log_files(base_path):
+
+    success_data = pd.read_csv(os.path.join(base_path, 'success_data.csv'))
+    
+    json_path = os.path.join(base_path, 'x_hists.json')
+    with open(json_path, 'r') as f:
+        x_hists_data = json.load(f)
+    x_hists_ndarray = np.array(x_hists_data)
+
+    num_simulation = len(x_hists_ndarray)
+    success_index = success_data['success_index'].to_numpy()
+    success_time = success_data['success_time'].to_numpy()
+    fail_index = np.setdiff1d(np.arange(num_simulation), success_index)
+    
+    return x_hists_ndarray, success_index, success_time, fail_index

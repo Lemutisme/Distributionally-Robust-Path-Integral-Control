@@ -198,9 +198,7 @@ if __name__ == "__main__":
 
     obstacle = Obstacle(obstacle_positions = obstacle_positions, obstacle_radius = obstacle_radius, boundary_x = boundary_x, boundary_y = boundary_y, obs_cost = obs_cost)
     environment = Map([obstacle])
-    fig, ax = plt.subplots(figsize=(10, 6))
-    environment.plot_map(ax)
-    plt.show()
+    print(environment.obstacles[0].obstacle_positions)
 
     dynamics = Dynamics_Input_Integrator(0.05, 0.5)
     print(dynamics.compute_next_state(np.array([0, 0, 0, 0]), np.array([1, 1]), np.array([0, 0]), np.array([0, 0])))
