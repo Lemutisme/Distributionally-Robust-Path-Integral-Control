@@ -13,14 +13,14 @@ def trajectory_plot(x_hist, x_vis, x_init, x_goal, environment):
     fig, ax = plt.subplots()
     ax.plot([x_init[0]], [x_init[1]], '8', markersize = 10, markerfacecolor = 'k', label = 'Initial State',markeredgecolor = 'none' )
     ax.plot([x_goal[0]], [x_goal[1]], '*', markersize = 10, markerfacecolor = 'k', label = 'Target State',markeredgecolor = 'none' )
-                    
+
     environment.plot_map(ax)
     ax.plot(x_hist[:,0], x_hist[:,1], 'r', label='Past state')
     ax.plot(x_vis[:,:,0].T, x_vis[:,:,1].T, 'k', alpha=0.1, zorder=3)
-                    
+
     ax.set_xlim(environment.obstacles[0].boundary_x)
     ax.set_ylim(environment.obstacles[0].boundary_y)
-                    
+
     ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), fancybox=True, shadow=True, ncol=5)
     ax.set_aspect('equal')
     plt.tight_layout()
@@ -75,13 +75,11 @@ def final_plot(x_hists, x_init, x_goal, success_index, success_time, fail_index,
     ax.set_xlabel(r'$p_{x}$', fontsize=10)
     ax.set_ylabel(r'$p_{y}$', fontsize=10)
 
-    # ax.legend(loc="lower left", prop={'size': 7})
-
     if Visualization:
         plt.tight_layout()
         plt.show()
 
-    if SAVE_LOG:    
+    if SAVE_LOG:
         dir_path = f"./log/{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
@@ -111,7 +109,7 @@ if __name__ == "__main__":
     Visualization = parser.parse_args().Visualization
 
     x_hists, success_index, success_time, fail_index = extract_log_files(Name)
-    
+
     x_init, x_goal, environment = extract_para(Exp)
 
     final_plot(x_hists, x_init, x_goal, success_index, success_time, fail_index, environment, Visualization, SAVE_LOG)

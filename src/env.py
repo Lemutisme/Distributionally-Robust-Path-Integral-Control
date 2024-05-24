@@ -7,19 +7,19 @@ class Dynamics:
     def __init__(self, dt, sigma):
         self.dt = dt
         self.sigma = sigma
-        
+
     def F_Matrix(self, state):
         raise NotImplementedError("F_Matrix method must be implemented in derived classes.")
-    
+
     def G_Matrix(self, state):
         raise NotImplementedError("G_Matrix method must be implemented in derived classes.")
-    
+
     def Sigma_Matrix(self, state):
         raise NotImplementedError("Sigma_Matrix method must be implemented in derived classes.")
-    
+
     def compute_next_state(self, state, control, noise, mu):
         return state + self.F_Matrix(state) @ state + self.G_Matrix(state) @ (control * self.dt) + self.Sigma_Matrix(state) @ (mu * self.dt + noise * np.sqrt(self.dt))
-    
+
     def dxi(self, x_hist, t):
         return np.linalg.pinv(self.Sigma_Matrix(x_hist[t])) @ (x_hist[t+1] - x_hist[t] - self.F_Matrix(x_hist[t]) @ (x_hist[t] * self.dt))
 
@@ -29,13 +29,13 @@ class Dynamics_Input_Integrator(Dynamics):
                          [0, 0, 0, self.dt],
                          [0, 0, 0, 0],
                          [0, 0, 0, 0]])
-    
+
     def G_Matrix(self, state):
         return np.array([[0, 0],
                          [0, 0],
                          [self.sigma, 0],
                          [0, self.sigma]])
-    
+
     def Sigma_Matrix(self, state):
         return np.array([[0, 0],
                          [0, 0],
@@ -47,12 +47,12 @@ class Dynamics_Unicycle(Dynamics):
         return np.array([[0, 0, 0],
                          [0, 0, 0],
                          [0, 0, 0]])
-    
+
     def G_Matrix(self, state):
         return np.array([[np.cos(state[2]), 0],
                          [np.sin(state[2]), 0],
-                         [0, self.sigma]])  
-    
+                         [0, self.sigma]])
+
     def Sigma_Matrix(self, state):
         return np.array([[np.cos(state[2]), 0],
                          [np.sin(state[2]), 0],
@@ -87,7 +87,7 @@ class Obstacle:
 
     def check_hit_boundary(self, x_curr):
         return x_curr[0] < self.boundary_x[0] or x_curr[0] > self.boundary_x[1] or x_curr[1] < self.boundary_y[0] or x_curr[1] > self.boundary_y[1]
-    
+
     def plot_obstacles(self, ax):
         for obs_pos, obs_r in zip(self.obstacle_positions, self.obstacle_radius):
             obs = plt.Rectangle(obs_pos, obs_r, obs_r, color='k', fill=True, zorder=6)
@@ -96,7 +96,7 @@ class Obstacle:
 class RectangularObstacle(Obstacle):
     def __init__(self, obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost):
         super().__init__(obstacle_positions, obstacle_radius, boundary_x, boundary_y, obs_cost)
-    
+
     def compute_obstacle_cost(self, x_curr):
         num_obs = len(self.obstacle_positions)
         cost = 0
@@ -106,13 +106,13 @@ class RectangularObstacle(Obstacle):
             cost += float(x_curr[0] > op[0] and x_curr[0] < op[0] + r[0] and
                           x_curr[1] > op[1] and x_curr[1] < op[1] + r[1]) * self.obs_cost
         return cost
-    
+
     def check_hit_obstacle(self, x_curr):
         for pos, dim in zip(self.obstacle_positions, self.obstacle_radius):
             if (x_curr[0] > pos[0] and x_curr[0] < pos[0] + dim[0] and x_curr[1] > pos[1] and x_curr[1] < pos[1] + dim[1]):
                 return True
         return False
-    
+
     def plot_obstacles(self, ax):
         for obs_pos, obs_r in zip(self.obstacle_positions, self.obstacle_radius):
             obs = plt.Rectangle(obs_pos, obs_r[0], obs_r[1], color='k', fill=True, zorder=6)
@@ -184,7 +184,6 @@ class Map:
     def plot_map(self, ax):
         for obstacle in self.obstacles:
             obstacle.plot_obstacles(ax)
-
 
 if __name__ == "__main__":
 

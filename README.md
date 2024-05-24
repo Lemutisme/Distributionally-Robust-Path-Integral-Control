@@ -1,13 +1,12 @@
 # DR Control
 
-This is the repo of out paper:
+This is the repo of our paper [Distributionally Robust Path Integral Control](https://arxiv.org/abs/2310.01633)
 
 ## Requirement
 
 ```shell
-conda create -n DRC python=3.11
+conda env create -f environment.yml
 conda activate DRC
-conda install numpy pandas matplotlib seaborn scipy tqdm
 ```
 
 ## How to Use
@@ -24,13 +23,12 @@ python src/main.py [options]
 
 - `--DR_method`: Choose a DR method. Options are `"DR NM"`, `"DR GM"`, and `"RN"`. Default is `"DR NM"`.
 
-  - `"DR NM"` represents `"DRPI Numerical Minimization"`,
-  - `"DR GM"` represents `"DRPI Robust Global Minimization"`,
-  - `"RN"` represents `"Risk-Neutral PIC"`
+  - `"DR NM"` represents `"DRPI Numerical Minimization"`.
+  - `"RN"` represents `"Risk-Neutral PIC"`.
 - `--Experiment`: Set the experiment number. Choose between `"1"` and `"2"`. Default is `"1"`.
 
-  * `"1"` represents `"Input Integrator"`,
-  * `"2"` represents `"Unicycle".`
+  * `"1"` represents `"Input Integrator"`.
+  * `"2"` represents `"Unicycle"`.
 - `--Visualization`: If included, this will visualize the figure.
 - `--Online`: If included. this will enable online learning.
 - `--seed_value`: Set the seed value. Default is not setting seed.
