@@ -1,6 +1,6 @@
 # DR Control
 
-This is the repo of our paper [Distributionally Robust Path Integral Control](https://arxiv.org/abs/2310.01633)
+This is the implementation for our paper [Distributionally Robust Path Integral Control](https://arxiv.org/abs/2310.01633)
 
 ## Requirement
 
@@ -15,7 +15,7 @@ conda activate DRC
 
 To run the script, use the following command:
 
-```
+```shell
 python src/main.py [options]
 ```
 
@@ -46,7 +46,7 @@ python src/main.py [options]
 
 This is the standrad experiment.
 
-```
+```shell
 python src/main.py --DR_method "DR NM" --Experiment "1" --Online --seed_value 1 --num_simulation 1 --observations 1
 ```
 
@@ -54,7 +54,7 @@ python src/main.py --DR_method "DR NM" --Experiment "1" --Online --seed_value 1 
 
 To run the script, use the following command:
 
-```
+```shell
 python src/vis.py [options]
 ```
 
