@@ -1,6 +1,6 @@
 # DR Control
 
-This is the implementation for our paper [Distributionally Robust Path Integral Control](https://arxiv.org/abs/2310.01633)
+This is the repo for our paper [Distributionally Robust Path Integral Control](https://ieeexplore.ieee.org/abstract/document/10644179).
 
 ## Requirement
 
