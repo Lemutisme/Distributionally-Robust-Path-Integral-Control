@@ -1,6 +1,19 @@
 # DR Control
 
-This is the repo for our paper [Distributionally Robust Path Integral Control](https://ieeexplore.ieee.org/abstract/document/10644179).
+This is the repo for our paper [Distributionally Robust Path Integral Control](https://ieeexplore.ieee.org/abstract/document/10644179). Please kindly cite our work as following:
+
+```
+@INPROCEEDINGS{10644179,
+  author={Park, Hyuk and Zhou, Duo and Hanasusanto, Grani A. and Tanaka, Takashi},
+  booktitle={2024 American Control Conference (ACC)}, 
+  title={Distributionally Robust Path Integral Control}, 
+  year={2024},
+  volume={},
+  number={},
+  pages={1164-1171},
+  keywords={System dynamics;Heuristic algorithms;Diffusion processes;Optimal control;Data collection;Trajectory;Complex systems;stochastic optimal control;distributionally robust optimization;path integral method;risk-sensitive control},
+  doi={10.23919/ACC60939.2024.10644179}}
+```
 
 ## Results and Visualizations
 
